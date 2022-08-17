@@ -1,0 +1,25 @@
+{
+  "name": "app-counter",
+  "version": "0.1.0",
+  "description": "Template for a Netless Community App",
+  "private": true,
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "files": [
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  },
+  "engines": {
+    "npm": "^8.0.0"
+  },
+  "devDependencies": {
+    "@netless/fastboard": "^0.3.3",
+    "@netless/window-manager": "^0.4.30",
+    "vite": "^2.9.10",
+    "white-web-sdk": "^2.16.24"
+  }
+}
