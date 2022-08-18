@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 import styles from "./style.css?inline";
+import * as PIXI from 'pixi.js';
 
 /**
  * Register it before joining room:
@@ -19,6 +20,8 @@ import styles from "./style.css?inline";
  *
  * @type {import("@netless/window-manager").NetlessApp}
  */
+
+const app = new PIXI.Application();
 const Counter = {
   kind: "Counter",
   setup(context) {
@@ -29,17 +32,52 @@ const Counter = {
     $content.className = "app-counter";
     box.mountContent($content);
 
-    const $button = document.createElement("button");
-    $content.appendChild($button);
+    // add pixijs app
+    $content.appendChild(app.view);
+    app.loader.add('bunny', 'src/bunny.png').load((loader, resources) => {
 
-    const storage = context.createStorage("counter", { count: 0 });
-    $button.onclick = ev => {
-      storage.setState({ count: storage.state.count + (ev.shiftKey ? -1 : 1) });
-    };
+      // This creates a texture from a 'bunny.png' image.
+      const bunny = new PIXI.Sprite(resources.bunny.texture);
 
-    function refresh() {
-      $button.textContent = String(storage.state.count);
-    }
+      // Setup the position of the bunny
+      bunny.x = app.renderer.width / 2;
+      bunny.y = app.renderer.height / 2;
+
+      // Rotate around the center
+      bunny.anchor.x = 0.5;
+      bunny.anchor.y = 0.5;
+
+      bunny.interactive = true;
+      // Shows hand cursor
+      bunny.buttonMode = true;
+      // Pointers normalize touch and mouse
+      bunny.on('pointerdown', () => {
+        bunny.scale.x *= 1.25;
+        bunny.scale.y *= 1.25;
+      });
+
+      // Add the bunny to the scene we are building.
+      app.stage.addChild(bunny);
+
+      // Listen for frame updates
+      app.ticker.add(() => {
+        // each frame we spin the bunny around a bit
+        bunny.rotation += 0.01;
+      });
+    });
+
+    // const $button = document.createElement("button");
+    // $content.appendChild($button);
+
+    // const storage = context.createStorage("counter", { count: 0 });
+    // $button.onclick = ev => {
+    //   storage.setState({ count: storage.state.count + (ev.shiftKey ? -1 : 1) });
+    // };
+
+    // function refresh() {
+    //   $button.textContent = String(storage.state.count);
+    // }
+
     const dispose = storage.addStateChangedListener(refresh);
     refresh();
 

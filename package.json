@@ -21,5 +21,9 @@
     "@netless/window-manager": "^0.4.30",
     "vite": "^2.9.10",
     "white-web-sdk": "^2.16.24"
+  },
+  "dependencies": {
+    "@inlet/react-pixi": "^6.8.0",
+    "pixi.js": "^6.5.1"
   }
 }
