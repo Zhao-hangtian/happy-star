@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import styles from "./style.css?inline";
-import * as PIXI from 'pixi.js';
+import App from "./app.js";
 
 /**
  * Register it before joining room:
@@ -21,7 +21,7 @@ import * as PIXI from 'pixi.js';
  * @type {import("@netless/window-manager").NetlessApp}
  */
 
-const app = new PIXI.Application();
+
 const Counter = {
   kind: "Counter",
   setup(context) {
@@ -29,42 +29,45 @@ const Counter = {
     box.mountStyles(styles);
 
     const $content = document.createElement("div");
-    $content.className = "app-counter";
+    $content.className = "app-idioms";
     box.mountContent($content);
 
     // add pixijs app
-    $content.appendChild(app.view);
-    app.loader.add('bunny', 'src/bunny.png').load((loader, resources) => {
+    // const app = new PIXI.Application();
+    const app = new App()
+    // console.log("123", app.app)
+    $content.appendChild(app.app.view).className = "app-idioms-scene";
+    // app.loader.add('bunny', 'src/bunny.png').load((loader, resources) => {
 
-      // This creates a texture from a 'bunny.png' image.
-      const bunny = new PIXI.Sprite(resources.bunny.texture);
+    //   // This creates a texture from a 'bunny.png' image.
+    //   const bunny = new PIXI.Sprite(resources.bunny.texture);
 
-      // Setup the position of the bunny
-      bunny.x = app.renderer.width / 2;
-      bunny.y = app.renderer.height / 2;
+    //   // Setup the position of the bunny
+    //   bunny.x = app.renderer.width / 2;
+    //   bunny.y = app.renderer.height / 2;
 
-      // Rotate around the center
-      bunny.anchor.x = 0.5;
-      bunny.anchor.y = 0.5;
+    //   // Rotate around the center
+    //   bunny.anchor.x = 0.5;
+    //   bunny.anchor.y = 0.5;
 
-      bunny.interactive = true;
-      // Shows hand cursor
-      bunny.buttonMode = true;
-      // Pointers normalize touch and mouse
-      bunny.on('pointerdown', () => {
-        bunny.scale.x *= 1.25;
-        bunny.scale.y *= 1.25;
-      });
+    //   bunny.interactive = true;
+    //   // Shows hand cursor
+    //   bunny.buttonMode = true;
+    //   // Pointers normalize touch and mouse
+    //   bunny.on('pointerdown', () => {
+    //     bunny.scale.x *= 1.25;
+    //     bunny.scale.y *= 1.25;
+    //   });
 
       // Add the bunny to the scene we are building.
-      app.stage.addChild(bunny);
+    //   app.stage.addChild(bunny);
 
-      // Listen for frame updates
-      app.ticker.add(() => {
-        // each frame we spin the bunny around a bit
-        bunny.rotation += 0.01;
-      });
-    });
+    //   // Listen for frame updates
+    //   app.ticker.add(() => {
+    //     // each frame we spin the bunny around a bit
+    //     bunny.rotation += 0.01;
+    //   });
+    // });
 
     // const $button = document.createElement("button");
     // $content.appendChild($button);
@@ -78,12 +81,12 @@ const Counter = {
     //   $button.textContent = String(storage.state.count);
     // }
 
-    const dispose = storage.addStateChangedListener(refresh);
-    refresh();
+    // const dispose = storage.addStateChangedListener(refresh);
+    // refresh();
 
-    context.emitter.on("destroy", () => {
-      dispose();
-    });
+    // context.emitter.on("destroy", () => {
+    //   dispose();
+    // });
   },
 };
 
