@@ -10,13 +10,13 @@ const GAP_SIZE = 2
  * caculate the position of the piece, manage interacton of a piece, check the game is ended.
  */
 export default class Idiom extends Container {
-    constructor(renderer) {
+    constructor(app) {
         super()
-
-        this.renderer = renderer
-
-
-        this.token = this._randomString(256, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+        this.app = app
+        this.renderer = app.renderer
+        
+        // 同步token
+        this.token = this.app.token;
 
         //how many step have you moved
         this.moveCount = 0
@@ -56,11 +56,11 @@ export default class Idiom extends Container {
     //     // return success
     // }
 
-    _randomString(length, chars) {
-        let result = '';
-        for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
-        return result;
-    }
+    // _randomString(length, chars) {
+    //     let result = '';
+    //     for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+    //     return result;
+    // }
 
     /**
      * shuffle, random create the pieces index
@@ -71,24 +71,24 @@ export default class Idiom extends Container {
      *
      * suffle will return [3,8,6,2,5,1,4,0,7] etc.
      */
-    _shuffle() {
+    // _shuffle() {
 
-        let index = -1
-        let length = this.level * this.level
-        const lastIndex = length - 1
+    //     let index = -1
+    //     let length = this.level * this.level
+    //     const lastIndex = length - 1
 
-        const result = Array.from({
-            length
-        }, (v, i) => i)
+    //     const result = Array.from({
+    //         length
+    //     }, (v, i) => i)
 
-        while (++index < length) {
-            const rand = index + Math.floor(Math.random() * (lastIndex - index + 1))
-            const value = result[rand]
-            result[rand] = result[index]
-            result[index] = value
-        }
-        return result
-    }
+    //     while (++index < length) {
+    //         const rand = index + Math.floor(Math.random() * (lastIndex - index + 1))
+    //         const value = result[rand]
+    //         result[rand] = result[index]
+    //         result[index] = value
+    //     }
+    //     return result
+    // }
 
     _setTable() {
         let headers = new Headers();

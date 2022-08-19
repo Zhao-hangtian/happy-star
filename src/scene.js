@@ -1,9 +1,9 @@
 import { Container, filters, Texture, Graphics, Sprite, Text, TextStyle, BaseTexture } from 'pixi.js'
 import sound from 'pixi-sound'
 
-import Idiom from './idiom'
-// import { backendAddress } from "./config";
+import { backendAddress } from "./config";
 import Swal from 'sweetalert2'
+import Idiom from './idioms'
 
 const STYLE_TIMER = new TextStyle({
     fontFamily: 'Arial',
@@ -33,8 +33,9 @@ let _countdown = TOTAL_TIME
  */
 export default class Scene extends Container {
 
-    constructor() {
+    constructor(app) {
         super()
+        this.app = app
 
         //countdown text
         this.$time = new Text(_countdown + '″', STYLE_TIMER)
@@ -252,7 +253,7 @@ export default class Scene extends Container {
 
 
         // 渲染
-        this.$idiom = new Idiom(app.renderer)
+        this.$idiom = new Idiom(app)
         this.addChild(this.$idiom)
         this.addChild(this.$answerView)
 
@@ -274,7 +275,7 @@ export default class Scene extends Container {
         button_normal.beginFill(0xFFFFFF, 0.5);
         button_normal.drawRoundedRect(0, 0, BUTTON_TOPS.width, BUTTON_TOPS.height, 16);
         button_normal.endFill();
-        let normal_texture = app.renderer.generateTexture(button_normal)
+        let normal_texture = this.app.renderer.generateTexture(button_normal)
         let button_sprite = Sprite.from(normal_texture);
         const button_text = new Text(text, { fontFamily: 'Arial', fontSize: 48, fill: 0x000000, align: 'center' });
         button_text.x = button_sprite.x + 0.1 * button_sprite.height;
@@ -286,7 +287,7 @@ export default class Scene extends Container {
         button_sprite.addChild(button_text)
         button_sprite.interactive = true
         button_sprite.buttonMode = true
-        button_sprite.over_texture = app.renderer.generateTexture(button_over);
+        button_sprite.over_texture = this.app.renderer.generateTexture(button_over);
         button_sprite.normal_texture = normal_texture;
         return button_sprite
     }
@@ -296,7 +297,7 @@ export default class Scene extends Container {
      */
     start() {
         // 播放bgm
-        app.sound.play('sound_bg', true)
+        // this.app.sound.play('sound_bg', true)
         this.timer = setInterval(() => {
 
 
@@ -306,8 +307,8 @@ export default class Scene extends Container {
             this.$time.text = _countdown + '″'
             if (_countdown === 0) {
                 clearInterval(this.timer)
-                app.sound.stop('sound_bg')
-                app.sound.play('sound_fail')
+                // this.app.sound.stop('sound_bg')
+                // this.app.sound.play('sound_fail')
                 Swal.fire({
                     title: '时间到!',
                     html: '就差一点点啦！下次更好！',

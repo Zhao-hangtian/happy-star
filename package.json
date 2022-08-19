@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@inlet/react-pixi": "^6.8.0",
+    "pixi-sound": "^3.0.5",
     "pixi.js": "^6.5.1",
     "sweetalert2": "^11.4.28",
     "throttle-debounce": "^5.0.0"
