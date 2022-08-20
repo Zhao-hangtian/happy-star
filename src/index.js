@@ -22,8 +22,8 @@ import App from "./app.js";
  */
 
 
-const Counter = {
-  kind: "Counter",
+const ChineseIdiomsPuzzle = {
+  kind: "成语解谜",
   setup(context) {
     const box = context.getBox();
     box.mountStyles(styles);
@@ -107,4 +107,4 @@ const Counter = {
   },
 };
 
-export default Counter;
+export default ChineseIdiomsPuzzle;

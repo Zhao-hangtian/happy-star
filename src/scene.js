@@ -116,23 +116,7 @@ export default class Scene extends Container {
                     // 通关
                     if (data["code"] === 0 && data["data"] === true) {
                         let newToken = getRandomString(256, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-                        this.app.context.dispatchMagixEvent("event1", { win: 1, newToken: newToken });
-                        // Swal.fire({
-                        //     title: 'Success!',
-                        //     html: '恭喜通关!在下真是<b>' + WINNER_WORDS[Math.random() * WINNER_WORDS.length | 0] + '</b>',
-                        //     icon: 'success',
-                        //     confirmButtonText: WINNER_CONFIRM_WORDS[Math.random() * WINNER_CONFIRM_WORDS.length | 0],
-                        //     timer: 800
-
-                        // }).then((result) => {
-                        //     if (result.isConfirmed) {
-                        //         let newToken = getRandomString(256, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-                        //         this.app.context.dispatchMagixEvent("event1", {win: 1, newToken: newToken});
-                        //     }
-                        // })
-                        // clearInterval(this.timer)
-                        // app.sound.stop('sound_bg')
-                        // app.sound.play('sound_win')
+                        this.app.context.dispatchMagixEvent("event1", { trigger: "win", newToken: newToken });
 
                     } else {
                         Swal.fire({
@@ -165,13 +149,7 @@ export default class Scene extends Container {
         // 重置
         this.$reset_botton = this.getButton("重置", RESET_POS.x, RESET_POS.y);
         this.$reset_botton.on('pointerdown', () => {
-            Swal.fire({
-                icon: 'success',
-                title: '重置完成',
-                showConfirmButton: false,
-                timer: 800,
-            })
-            this.$idiom.reset()
+            this.app.context.dispatchMagixEvent("event1", { trigger: "reset"});
         })
             .on('pointerover', () => {
                 this.$reset_botton.texture = this.$reset_botton.over_texture;
@@ -186,51 +164,7 @@ export default class Scene extends Container {
         this.$answer_botton = this.getButton("答案", ANS_POS.x, ANS_POS.y);
         this.$answer_botton.on('pointerdown', () => {
             console.log("获取正确答案")
-
-            const requestOptions = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    "token": this.$idiom.token
-                }),
-                redirect: 'follow',
-                mode: 'cors'
-            };
-
-            // console.log(raw)
-
-            fetch(`https://${backendAddress}/idioms/getAnswer`, requestOptions)
-                .then(response => {
-                    console.log(response)
-                    return response.json()
-                })
-                .then((data) => {
-                    console.log(data)
-                    let answers = data["data"]
-                    let text = "";
-                    for (let key in answers) {
-                        text += "<h3>" + key + "</h3>" + "(" + answers[key]["Pinyin"] + ")</p>【解释】" + answers[key]["Explanation"] + "</p>【出处】" +
-                            answers[key]["Derivation"] + "</p>【例子】" + answers[key]["Example"] + "</p>"
-                    }
-                    this.stop = true;
-                    Swal.fire({
-                        title: '答案解析',
-                        html: text,
-                        // width: 800,
-                        scrollbarPadding: false,
-                        showCloseButton: true,
-                        confirmButtonText: ANS_WORDS[Math.random() * ANS_WORDS.length | 0],
-                    }).then((result) => {
-                        this.stop = false;
-                    })
-
-                })
-                .catch((error) => {
-                    console.log(error)
-                })
-
+            this.ans();
         })
             .on('pointerover', () => {
                 this.$answer_botton.texture = this.$answer_botton.over_texture;
@@ -259,8 +193,11 @@ export default class Scene extends Container {
 
         const event1Disposer = this.app.context.addMagixEventListener("event1", msg => {
             console.log("event1", msg);
-            if (msg.payload.win === 1) {
-                this.win(msg.payload.newToken);
+            if (msg.payload.trigger === "win") {
+                this.win(msg.payload.newToken); 
+            }
+            if (msg.payload.trigger === "reset") {
+                this.reset();
             }
         });
 
@@ -298,6 +235,16 @@ export default class Scene extends Container {
         // piece.currentIndex = state.currentIndex
     }
 
+    reset() {
+        Swal.fire({
+            icon: 'success',
+            title: '重置完成',
+            showConfirmButton: false,
+            timer: 800,
+        })
+        this.$idiom.reset()
+    }
+
     win(token) {
         Swal.fire({
             title: 'Success!',
@@ -311,7 +258,7 @@ export default class Scene extends Container {
         let timerInterval
         Swal.fire({
             title: '通关!',
-            html: '在下真是<b>' + WINNER_WORDS[Math.random() * WINNER_WORDS.length | 0] + '</b>(即将进入下一关<t></t>)',
+            html: '在下真是<b>' + WINNER_WORDS[Math.random() * WINNER_WORDS.length | 0] + '</b><p>(即将进入下一关<t></t>ms)',
             timer: 2000,
             timerProgressBar: true,
             didOpen: () => {
@@ -348,7 +295,64 @@ export default class Scene extends Container {
         console.log("开始新一局", this)
     }
 
+    ans() {
+        // 优先使用本地缓存，减少接口请求
+        if (this.ansText !== undefined){
+            Swal.fire({
+                title: '答案解析',
+                html: this.ansText,
+                // width: 800,
+                scrollbarPadding: false,
+                showCloseButton: true,
+                confirmButtonText: ANS_WORDS[Math.random() * ANS_WORDS.length | 0],
+            })
+            return
+        }
 
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "token": this.$idiom.token
+            }),
+            redirect: 'follow',
+            mode: 'cors'
+        };
+
+        // console.log(raw)
+
+        fetch(`https://${backendAddress}/idioms/getAnswer`, requestOptions)
+            .then(response => {
+                console.log(response)
+                return response.json()
+            })
+            .then((data) => {
+                console.log(data)
+                let answers = data["data"]
+                let text = "";
+                for (let key in answers) {
+                    text += "<h3>" + key + "</h3>" + "(" + answers[key]["Pinyin"] + ")</p>【解释】" + answers[key]["Explanation"] + "</p>【出处】" +
+                        answers[key]["Derivation"] + "</p>【例子】" + answers[key]["Example"] + "</p>"
+                }
+                this.stop = true;
+                Swal.fire({
+                    title: '答案解析',
+                    html: text,
+                    // width: 800,
+                    scrollbarPadding: false,
+                    showCloseButton: true,
+                    confirmButtonText: ANS_WORDS[Math.random() * ANS_WORDS.length | 0],
+                }).then(() => {
+                    this.ansText = text;
+                })
+
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+    }
 
     strInsert(originStr, disNum, insertStr) {
         return originStr.replace(new RegExp("(.{" + disNum + "})", "g"), "$1" + insertStr);
