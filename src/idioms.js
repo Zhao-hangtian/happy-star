@@ -1,4 +1,4 @@
-import {Container, Graphics, Rectangle, Sprite, Text,} from 'pixi.js'
+import { Container, Graphics, Rectangle, Sprite, Text, } from 'pixi.js'
 import Piece from './piece'
 import * as config from './config'
 
@@ -14,7 +14,7 @@ export default class Idiom extends Container {
         super()
         this.app = app
         this.renderer = app.renderer
-        
+
         // 同步token
         this.token = this.app.token;
 
@@ -159,25 +159,81 @@ export default class Idiom extends Container {
         let blockSize = blockSizePadding * 0.9
         let offset_x = (blockSizePadding - blockSize)
 
-        // candidates 加入 table
+        // candidates
         for (let i = 0; i < candidates.length; i++) {
             let row = 12;
             this._addPiece(row + Math.floor(i / maxBlockNumRoot), i % maxBlockNumRoot, 0xFFFFFF,
                 candidates[i], blockSize, blockSizePadding, offset_x, true)
         }
 
-        let colors = [];
+        let colors = {};
         table.forEach((item) => {
-            colors[parseInt(item['seq'])] = Math.random() * 0xFFFFFF;
+            let row = parseInt(item['pos']['y']) + this.y0;
+            let col = parseInt(item['pos']['x']) + this.x0;
+            let id = (1<<col | 1<< row)
+
+            if (item["char"] !== "_"){
+                colors[id] = parseInt(this.app.randomInts[parseInt(item['seq'])] * 0xFFFFFF);
+            }else{
+                colors[id] = parseInt(this.app.randomInts[64] * 0xFFFFFF);
+            }
+            // let id = (1<<col | 1<< row)
+            //     if (colors[id] === undefined){
+            //         colors[id] = parseInt(this.app.randomInts[parseInt(item['seq'])] * 0xFFFFFF);
+            //     }else{
+            //         colors[id] = this.colorMixUp(colors[id], this.app.randomInts[parseInt(item['seq'])] * 0xFFFFFF);
+            //     }
         })
 
         table.forEach((item) => {
             let row = parseInt(item['pos']['y']) + this.y0;
             let col = parseInt(item['pos']['x']) + this.x0;
-            this._addPiece(row, col, colors[parseInt(item['seq'])], item['char'], blockSize, blockSizePadding, offset_x, false)
+            let id = (1<<col | 1<< row)
+            this._addPiece(row, col, colors[id], item['char'], blockSize, blockSizePadding, offset_x, false)
 
         })
+
+
+
+
+
     }
+
+    // preZeroFill(num, size) {
+    //     if (num >= Math.pow(10, size)) { //如果num本身位数不小于size位
+    //         return num.toString();
+    //     } else {
+    //         var _str = Array(size + 1).join('0') + num;
+    //         return _str.slice(_str.length - size);
+    //     }
+    // }
+
+    // colorMixUp(color_1, color_2, weight) {
+    //     color_1 = this.preZeroFill(color_1.toString(16), 6)
+    //     color_2 = this.preZeroFill(color_2.toString(16), 6)
+
+    //     function d2h(d) { return d.toString(16); }  // convert a decimal value to hex
+    //     function h2d(h) { return parseInt(h, 16); } // convert a hex value to decimal 
+      
+    //     weight = (typeof(weight) !== 'undefined') ? weight : 50; // set the weight to 50%, if that argument is omitted
+      
+    //     var color = "";
+      
+    //     for(var i = 0; i <= 5; i += 2) { // loop through each of the 3 hex pairs—red, green, and blue
+    //       var v1 = h2d(color_1.substr(i, 2)), // extract the current pairs
+    //           v2 = h2d(color_2.substr(i, 2)),
+              
+    //           // combine the current pairs from each source color, according to the specified weight
+    //           val = d2h(Math.floor(v2 + (v1 - v2) * (weight / 100.0))); 
+      
+    //       while(val.length < 2) { val = '0' + val; } // prepend a '0' if val results in a single digit
+          
+    //       color += val; // concatenate val to our new color string
+    //     }
+          
+    //     console.log("output", color)
+    //     return parseInt(color); // PROFIT!
+    //   };
 
     reset() {
         this.init_table.forEach((item) => {
@@ -185,7 +241,9 @@ export default class Idiom extends Container {
             item['piece'].y = item['y']
             item['piece'].col = item['col']
             item['piece'].row = item['row']
+            this._save_piece_state(this.app.storage, item['piece'])
         })
+
     }
 
     _addPiece(row, col, backGroundColor, char, blockSize, blockSizePadding, offset_x, isCandidate) {
@@ -194,7 +252,7 @@ export default class Idiom extends Container {
         // graphics.lineStyle(8, 0x2273e6, char === '_' ? 0 : 0.5);
         // graphics.beginFill(Math.random() * 0xFFFFFF, char === '_' ? 0 : 0.25);
         // graphics.beginFill(backGroundColor, char === '_' ? 0 : 0.25);
-        graphics.beginFill(backGroundColor,  0.25);
+        graphics.beginFill(backGroundColor, 0.25);
         graphics.drawRoundedRect(0, 0, blockSize * 0.99, blockSize * 0.99, 16);
         graphics.endFill();
 
@@ -203,23 +261,23 @@ export default class Idiom extends Container {
         const rect = Sprite.from(texture);
 
         if (char !== '_') {
-            const text = new Text(char, {fontFamily: 'Arial', fontSize: 48, fill: 0x000000, align: 'center'});
-            text.x = rect.x+0.1*rect.height;
-            text.y = rect.y+0.1*rect.height;
-            text.height = 0.8*rect.height;
-            text.width = 0.8*rect.width;
+            const text = new Text(char, { fontFamily: 'Arial', fontSize: 48, fill: 0x000000, align: 'center' });
+            text.x = rect.x + 0.1 * rect.height;
+            text.y = rect.y + 0.1 * rect.height;
+            text.height = 0.8 * rect.height;
+            text.width = 0.8 * rect.width;
             rect.addChild(text)
         }
 
         let piece = new Piece(rect, row, col)
         // piece.id = (1 << row) | (1 << col)  // bitmap
         piece.id = this.pieceId++
-        
+
         // this.app.$pieces.
 
-        if (isCandidate){
+        if (isCandidate) {
             piece.type = 2
-        }else{
+        } else {
             piece.type = char === '_' ? 0 : 1
         }
         piece.char = char
@@ -230,7 +288,15 @@ export default class Idiom extends Container {
         piece.col = col
         piece.row = row
 
-        this.init_table.push({'piece': piece, 'x': piece.x, 'y': piece.y, 'col': piece.col, 'row': piece.row})
+        // 有线上数据则拉取覆盖，否则初始化线上  this._save_piece_state(this.app.storage, picked)
+        const cacheState = this.app.storage.state[piece.id];
+        if (cacheState !== undefined){
+            this._load_piece_state(cacheState, piece)
+        }else{
+            this._save_piece_state(this.app.storage, piece)
+        }
+
+        this.init_table.push({ 'piece': piece, 'x': piece.x, 'y': piece.y, 'col': piece.col, 'row': piece.row })
 
         // console.log("x", piece.x, "y", piece.y, "text", item['char'], typeof piece.x)
 
@@ -277,7 +343,17 @@ export default class Idiom extends Container {
     }
 
     _save_piece_state(storage, piece) {
-        storage.setState({[piece.id] : {x:piece.x, y:piece.y, col:piece.col, row:piece.row}})
+        storage.setState({ [piece.id]: { x: piece.x, y: piece.y, col: piece.col, row: piece.row , interactive: piece.interactive, alpha: piece.alpha} })
+    }
+
+    _load_piece_state(state, piece) {
+        // storage.setState({[piece.id] : {x:piece.x, y:piece.y, col: piece.col, row: piece.row, currentIndex: piece.currentIndex}})
+        piece.x = state.x
+        piece.y = state.y
+        piece.col = state.col
+        piece.row = state.row
+        piece.interactive = state.interactive
+        piece.alpha = state.alpha
     }
 
     /**
@@ -300,7 +376,7 @@ export default class Idiom extends Container {
         target.row = picked.origin_row
         // target.currentIndex = pickedIndex
 
-        if (picked.type === 2 && target.type === 0){
+        if (picked.type === 2 && target.type === 0) {
             target.interactive = false;
             target.alpha = 0;
         }

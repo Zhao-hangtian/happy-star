@@ -47,14 +47,9 @@ const Counter = {
     muteImg.style = "display:none;"
     $content.appendChild(muteImg)
 
-    const alert = document.createElement("div");
-    alert.className = "alert";
-    alert.style = "position: absolute; z-index: 1;";
-    $content.appendChild(alert)
+
 
     const app = new App(context)
-    app.app.view.style = "position: absolute; z-index: 2;";
-    // console.log("123", app.app)
     $content.appendChild(app.app.view).className = "app-idioms-scene";
 
     
@@ -108,9 +103,7 @@ const Counter = {
     // const dispose = storage.addStateChangedListener(refresh);
     // refresh();
 
-    // context.emitter.on("destroy", () => {
-    //   dispose();
-    // });
+    
   },
 };
 

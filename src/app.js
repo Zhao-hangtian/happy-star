@@ -11,22 +11,39 @@ export default class App {
     constructor(context) {
         const app = new PIXI.Application({backgroundAlpha:  0, width: 800, height: 1280});
         this.app = app;
+        this.app.context = context;
         this.app.resizeTo = undefined;
         this.viewRect = config.viewRect;
         PIXI.utils.EventEmitter.call(this);
 
-        const storage = context.createStorage("App_Idioms_Share", { token: this.getRandomString(256) });
+        // 初始化游戏状态
+        const storage = context.createStorage("App_Idioms_Share", { 
+            token: getRandomString(256, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+            randomInts: Array(256).fill(1).map(() => Math.random()),
+        });
+        
         this.app.token = storage.state.token;
+        this.app.randomInts = storage.state.randomInts;
         this.app.storage = storage;
 
+        console.log("初始化storage",storage)
         function refresh() {
             app.token = storage.state.token;
-          }
-        const dispose = storage.addStateChangedListener(refresh);
+            app.randomInts = storage.state.randomInts;
+        }
+
         refresh();
+
+        const dispose = storage.addStateChangedListener(refresh);
+        // for(let i=0;i<256;i++){
+        //     if (app.storage.state[i] !== undefined){
+        //         delete app.storage.state[i];
+        //     }
+        // }
 
         context.emitter.on("destroy", () => {
             dispose();
+            clearTimeout(this.timer);
           });
 
         console.log("storage", this.app.storage.state)
@@ -61,7 +78,7 @@ export default class App {
 
         let scene = new Scene(app)
         layers.scene.addChild(scene)
-        scene.start()
+        // scene.start()
 
         this.autoResize(this.viewRect)
     }
@@ -107,15 +124,17 @@ export default class App {
         })
     }
 
-    getRandomString(length) {
-        const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        let result = '';
-        for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
-        return result;
-    }
+    
 
     
 }
+
+export function getRandomString(length, chars) {
+    let result = '';
+    for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+    return result;
+}
+
 // Object.assign(App.prototype, PIXI.utils.EventEmitter.prototype)
 
  

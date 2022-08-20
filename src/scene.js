@@ -4,6 +4,7 @@ import sound from 'pixi-sound'
 import { backendAddress } from "./config";
 import Swal from 'sweetalert2'
 import Idiom from './idioms'
+import { getRandomString } from "./app.js";
 
 const STYLE_TIMER = new TextStyle({
     fontFamily: 'Arial',
@@ -13,7 +14,7 @@ const STYLE_TIMER = new TextStyle({
 })
 
 //time limit
-const TOTAL_TIME = 999 //second
+// const TOTAL_TIME = 999 //second
 
 const WINNER_WORDS = ["百伶百俐", "百龙之智", "辨日炎凉", "别具慧眼", "冰雪聪明", "聪慧绝伦", "聪明出众", "聪明绝顶", "聪明绝世", "聪明伶俐", "聪明睿达", "聪明睿知", "福慧双修", "福至性灵", "慧心灵性", "慧心巧思", "锦心绣肠", "精明能干", "精明强干", "绝顶聪明", "兰质蕙心", "敏而好学", "目达耳通", "七窍玲珑", "七行俱下", "剔透玲珑", "胸中之颖", "秀外惠中", "秀外慧中", "颖悟绝伦", "颖悟绝人", "至知不谋", "卓荦强识", "足智多谋"]
 const ANS_WORDS = ["我晓得啦", "俺知道了", "朕知道了", "朕懂了", "原来如此", "知了", "OK", "我知道了"]
@@ -26,7 +27,7 @@ const RESET_POS = { x: -150, y: -630 }
 const ANS_POS = { x: 0, y: -630 }
 
 //time countdown
-let _countdown = TOTAL_TIME
+// let _countdown = TOTAL_TIME
 
 /**
  * scene of the game
@@ -37,13 +38,15 @@ export default class Scene extends Container {
         super()
         this.app = app
 
+        // this._countdown = app.countdown
+
         //countdown text
-        this.$time = new Text(_countdown + '″', STYLE_TIMER)
-        this.$time.anchor.set(0.5)
-        this.$time.x = 300
-        this.$time.y = -600
-        this.stop = false;
-        this.addChild(this.$time)
+        // this.$time = new Text(this._countdown + '″', STYLE_TIMER)
+        // this.$time.anchor.set(0.5)
+        // this.$time.x = 300
+        // this.$time.y = -600
+        // this.stop = false;
+        // this.addChild(this.$time)
 
 
 
@@ -119,12 +122,13 @@ export default class Scene extends Container {
 
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                location.reload();
+                                let newToken = getRandomString(256, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+                                this.app.context.dispatchMagixEvent("event1", {win: 1, newToken: newToken});
                             }
                         })
-                        clearInterval(this.timer)
-                        app.sound.stop('sound_bg')
-                        app.sound.play('sound_win')
+                        // clearInterval(this.timer)
+                        // app.sound.stop('sound_bg')
+                        // app.sound.play('sound_win')
 
                     } else {
                         Swal.fire({
@@ -249,20 +253,29 @@ export default class Scene extends Container {
         this.$idiom = new Idiom(app)
         this.addChild(this.$idiom)
 
+        const event1Disposer = this.app.context.addMagixEventListener("event1", msg => {
+            console.log("event1", msg);
+            if (msg.payload.win === 1){
+                this.win(msg.payload.newToken);
+            }
+        });
+
         console.log(this.$idiom.$pieces)
 
         const dispose = this.app.storage.addStateChangedListener(() => {
-            console.log("this.app.storage", this.app.storage.state)
             for (const piece of this.$idiom.$pieces.children) {
                 let state = this.app.storage.state[piece.id];
                 if (state !== undefined) {
-                    console.log(piece)
+                    // console.log("piece changed", piece)
                     this._load_piece_state(state, piece)
                 }
             }
         });
 
-
+        // console.log("this.app.storage", this.app.storage.state)
+        this.app.context.emitter.on("destroy", () => {
+            dispose();
+        });
 
 
         this.addChild(this.$answerView)
@@ -275,7 +288,28 @@ export default class Scene extends Container {
         piece.y = state.y
         piece.col = state.col
         piece.row = state.row
+        piece.interactive = state.interactive
+        piece.alpha = state.alpha
+
         // piece.currentIndex = state.currentIndex
+    }
+
+    win(token) {
+        this.app.storage.state.token = token
+        this.app.token = this.app.storage.state.token
+
+        this.$idiom.destroy({ children: true, texture: true, baseTexture: true });
+        this.$idiom = new Idiom(this.app)
+        this.addChild(this.$idiom)
+        // 清空共享缓存
+        for (let i = 0; i < 256; i++) {
+            if (this.app.storage.state[i] !== undefined) {
+                delete this.app.storage.state[i];
+            }
+        }
+        console.log(this.app.storage.state)
+        this.$idiom.reset()
+        console.log("开始新一局", this)
     }
 
 
@@ -316,33 +350,32 @@ export default class Scene extends Container {
     /**
      * start the game
      */
-    start() {
-        // 播放bgm
-        // this.app.sound.play('sound_bg', true)
-        this.timer = setInterval(() => {
+    // start() {
+    //     // 播放bgm
+    //     // this.app.sound.play('sound_bg', true)
+    //     this.timer = setInterval(() => {
+    //         // this.app.storage.state.countUp += 1
+    //         let _countdown = this.countdown
+    //         if (this.stop == false) {
+    //         }
+    //         this.$time.text = _countdown + '″'
+    //         if (_countdown === 0) {
+    //             clearInterval(this.timer)
+    //             // this.app.sound.stop('sound_bg')
+    //             // this.app.sound.play('sound_fail')
+    //             Swal.fire({
+    //                 title: '时间到!',
+    //                 html: '就差一点点啦！下次更好！',
+    //                 icon: 'error',
+    //                 confirmButtonText: '没问题',
 
-
-            if (this.stop == false) {
-                _countdown--
-            }
-            this.$time.text = _countdown + '″'
-            if (_countdown === 0) {
-                clearInterval(this.timer)
-                // this.app.sound.stop('sound_bg')
-                // this.app.sound.play('sound_fail')
-                Swal.fire({
-                    title: '时间到!',
-                    html: '就差一点点啦！下次更好！',
-                    icon: 'error',
-                    confirmButtonText: '没问题',
-
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        location.reload();
-                    }
-                })
-            }
-            // }
-        }, 1000)
-    }
+    //             }).then((result) => {
+    //                 if (result.isConfirmed) {
+    //                     location.reload();
+    //                 }
+    //             })
+    //         }
+    //         // }
+    //     }, 1000)
+    // }
 }
