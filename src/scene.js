@@ -113,19 +113,23 @@ export default class Scene extends Container {
                 })
                 .then((data) => {
                     console.log(data)
+                    // 通关
                     if (data["code"] === 0 && data["data"] === true) {
-                        Swal.fire({
-                            title: 'Success!',
-                            html: '恭喜通关!在下真是<b>' + WINNER_WORDS[Math.random() * WINNER_WORDS.length | 0] + '</b>',
-                            icon: 'success',
-                            confirmButtonText: WINNER_CONFIRM_WORDS[Math.random() * WINNER_CONFIRM_WORDS.length | 0],
+                        let newToken = getRandomString(256, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+                        this.app.context.dispatchMagixEvent("event1", { win: 1, newToken: newToken });
+                        // Swal.fire({
+                        //     title: 'Success!',
+                        //     html: '恭喜通关!在下真是<b>' + WINNER_WORDS[Math.random() * WINNER_WORDS.length | 0] + '</b>',
+                        //     icon: 'success',
+                        //     confirmButtonText: WINNER_CONFIRM_WORDS[Math.random() * WINNER_CONFIRM_WORDS.length | 0],
+                        //     timer: 800
 
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                let newToken = getRandomString(256, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-                                this.app.context.dispatchMagixEvent("event1", {win: 1, newToken: newToken});
-                            }
-                        })
+                        // }).then((result) => {
+                        //     if (result.isConfirmed) {
+                        //         let newToken = getRandomString(256, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+                        //         this.app.context.dispatchMagixEvent("event1", {win: 1, newToken: newToken});
+                        //     }
+                        // })
                         // clearInterval(this.timer)
                         // app.sound.stop('sound_bg')
                         // app.sound.play('sound_win')
@@ -255,7 +259,7 @@ export default class Scene extends Container {
 
         const event1Disposer = this.app.context.addMagixEventListener("event1", msg => {
             console.log("event1", msg);
-            if (msg.payload.win === 1){
+            if (msg.payload.win === 1) {
                 this.win(msg.payload.newToken);
             }
         });
@@ -295,6 +299,38 @@ export default class Scene extends Container {
     }
 
     win(token) {
+        Swal.fire({
+            title: 'Success!',
+            html: '恭喜通关!在下真是<b>' + WINNER_WORDS[Math.random() * WINNER_WORDS.length | 0] + '</b>',
+            icon: 'success',
+            confirmButtonText: WINNER_CONFIRM_WORDS[Math.random() * WINNER_CONFIRM_WORDS.length | 0],
+            timer: 800
+
+        })
+
+        let timerInterval
+        Swal.fire({
+            title: '通关!',
+            html: '在下真是<b>' + WINNER_WORDS[Math.random() * WINNER_WORDS.length | 0] + '</b>(即将进入下一关<t></t>)',
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading()
+                const b = Swal.getHtmlContainer().querySelector('t')
+                timerInterval = setInterval(() => {
+                    b.textContent = Swal.getTimerLeft()
+                }, 100)
+            },
+            willClose: () => {
+                clearInterval(timerInterval)
+            }
+        }).then((result) => {
+            /* Read more about handling dismissals below */
+            if (result.dismiss === Swal.DismissReason.timer) {
+                console.log('I was closed by the timer')
+            }
+        })
+
         this.app.storage.state.token = token
         this.app.token = this.app.storage.state.token
 
