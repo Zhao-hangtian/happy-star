@@ -19,6 +19,7 @@ export default class Idiom extends Container {
         this.token = this.app.token;
 
         //how many step have you moved
+        this.pieceId = 0
         this.moveCount = 0
 
         //layer of the pieces
@@ -128,7 +129,7 @@ export default class Idiom extends Container {
      */
     _createPieces(table, candidates) {
         let maxBlockNumRoot = 10
-
+        // console.log(candidates)
         // 计算偏移量，使得游戏整体居中
         let xMin = maxBlockNumRoot
         let yMin = maxBlockNumRoot
@@ -162,7 +163,7 @@ export default class Idiom extends Container {
         for (let i = 0; i < candidates.length; i++) {
             let row = 12;
             this._addPiece(row + Math.floor(i / maxBlockNumRoot), i % maxBlockNumRoot, 0xFFFFFF,
-                candidates[i], blockSize, blockSizePadding, offset_x)
+                candidates[i], blockSize, blockSizePadding, offset_x, true)
         }
 
         let colors = [];
@@ -173,7 +174,7 @@ export default class Idiom extends Container {
         table.forEach((item) => {
             let row = parseInt(item['pos']['y']) + this.y0;
             let col = parseInt(item['pos']['x']) + this.x0;
-            this._addPiece(row, col, colors[parseInt(item['seq'])], item['char'], blockSize, blockSizePadding, offset_x)
+            this._addPiece(row, col, colors[parseInt(item['seq'])], item['char'], blockSize, blockSizePadding, offset_x, false)
 
         })
     }
@@ -187,12 +188,14 @@ export default class Idiom extends Container {
         })
     }
 
-    _addPiece(row, col, backGroundColor, char, blockSize, blockSizePadding, offset_x) {
+    _addPiece(row, col, backGroundColor, char, blockSize, blockSizePadding, offset_x, isCandidate) {
         let graphics = new Graphics();
-        graphics.lineStyle(8, 0x2273e6, char === '_' ? 0 : 0.5);
+        // console.log("char:", char, char === '_')
+        // graphics.lineStyle(8, 0x2273e6, char === '_' ? 0 : 0.5);
         // graphics.beginFill(Math.random() * 0xFFFFFF, char === '_' ? 0 : 0.25);
-        graphics.beginFill(backGroundColor, char === '_' ? 0 : 0.25);
-        graphics.drawRoundedRect(0, 0, blockSize * 0.95, blockSize * 0.95, 16);
+        // graphics.beginFill(backGroundColor, char === '_' ? 0 : 0.25);
+        graphics.beginFill(backGroundColor,  0.25);
+        graphics.drawRoundedRect(0, 0, blockSize * 0.99, blockSize * 0.99, 16);
         graphics.endFill();
 
         // use container
@@ -209,7 +212,17 @@ export default class Idiom extends Container {
         }
 
         let piece = new Piece(rect, row, col)
+        // piece.id = (1 << row) | (1 << col)  // bitmap
+        piece.id = this.pieceId++
+        
+        // this.app.$pieces.
 
+        if (isCandidate){
+            piece.type = 2
+        }else{
+            piece.type = char === '_' ? 0 : 1
+        }
+        piece.char = char
 
         //add the piece to ui
         piece.x = col * blockSizePadding - config.width / 2 + offset_x
@@ -226,13 +239,20 @@ export default class Idiom extends Container {
                 //put the selected（drag and move） piece on top of the others pieces.
                 this.$pieces.removeChild(picked)
                 this.$select.addChild(picked)
+                // picked.fromX = picked.x
+                // picked.fromY = picked.y
+                this._save_piece_state(this.app.storage, picked)
+                // this.app.storage.setState({[picked.id] : {x:picked.x, y:picked.y}})
             })
             .on('dragmove', (picked) => {
+                this._save_piece_state(this.app.storage, picked)
+                // console.log(this.app.storage.state[piece.id])
                 //check if hover on the other piece
                 this._checkHover(picked)
+                // this.app.storage.setState({[picked.id] : {x:picked.x, y:picked.y}})
             })
             .on('dragend', (picked) => {
-
+                // console.log(this.app.storage.state)
                 //restore the piece layer
                 this.$select.removeChild(picked)
                 this.$pieces.addChild(picked)
@@ -247,9 +267,17 @@ export default class Idiom extends Container {
                     picked.x = picked.origin_x
                     picked.y = picked.origin_y
                 }
+                this._save_piece_state(this.app.storage, target)
+                this._save_piece_state(this.app.storage, picked)
             })
 
+        // const dispose = this.app.storage.addStateChangedListener(refresh);
+
         this.$pieces.addChild(piece)
+    }
+
+    _save_piece_state(storage, piece) {
+        storage.setState({[piece.id] : {x:piece.x, y:piece.y, col:piece.col, row:piece.row}})
     }
 
     /**
@@ -258,18 +286,24 @@ export default class Idiom extends Container {
      * @param {*} target the one under the picked
      */
     _swap(picked, target) {
-        let pickedIndex = picked.currentIndex
+        // let pickedIndex = picked.currentIndex
         picked.x = target.x
         picked.y = target.y
         picked.col = target.col
         picked.row = target.row
-        picked.currentIndex = target.currentIndex
+        this._save_piece_state(this.app.storage, picked)
+        // picked.currentIndex = target.currentIndex
 
         target.x = picked.origin_x
         target.y = picked.origin_y
         target.col = picked.origin_col
         target.row = picked.origin_row
-        target.currentIndex = pickedIndex
+        // target.currentIndex = pickedIndex
+
+        if (picked.type === 2 && target.type === 0){
+            target.interactive = false;
+            target.alpha = 0;
+        }
     }
 
     /**

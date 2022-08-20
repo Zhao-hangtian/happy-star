@@ -13,7 +13,7 @@ const STYLE_TIMER = new TextStyle({
 })
 
 //time limit
-const TOTAL_TIME = 60 //second
+const TOTAL_TIME = 999 //second
 
 const WINNER_WORDS = ["百伶百俐", "百龙之智", "辨日炎凉", "别具慧眼", "冰雪聪明", "聪慧绝伦", "聪明出众", "聪明绝顶", "聪明绝世", "聪明伶俐", "聪明睿达", "聪明睿知", "福慧双修", "福至性灵", "慧心灵性", "慧心巧思", "锦心绣肠", "精明能干", "精明强干", "绝顶聪明", "兰质蕙心", "敏而好学", "目达耳通", "七窍玲珑", "七行俱下", "剔透玲珑", "胸中之颖", "秀外惠中", "秀外慧中", "颖悟绝伦", "颖悟绝人", "至知不谋", "卓荦强识", "足智多谋"]
 const ANS_WORDS = ["我晓得啦", "俺知道了", "朕知道了", "朕懂了", "原来如此", "知了", "OK", "我知道了"]
@@ -44,6 +44,8 @@ export default class Scene extends Container {
         this.$time.y = -600
         this.stop = false;
         this.addChild(this.$time)
+
+
 
         // 静音/取消静音按键
         // const sound_image = ;
@@ -159,10 +161,9 @@ export default class Scene extends Container {
                 icon: 'success',
                 title: '重置完成',
                 showConfirmButton: false,
-                timer: 800
+                timer: 800,
             })
             this.$idiom.reset()
-
         })
             .on('pointerover', () => {
                 this.$reset_botton.texture = this.$reset_botton.over_texture;
@@ -204,11 +205,6 @@ export default class Scene extends Container {
                     for (let key in answers) {
                         text += "<h3>" + key + "</h3>" + "(" + answers[key]["Pinyin"] + ")</p>【解释】" + answers[key]["Explanation"] + "</p>【出处】" +
                             answers[key]["Derivation"] + "</p>【例子】" + answers[key]["Example"] + "</p>"
-                        // for(let item of ["Pinyin", "Derivation", "Example"]){
-                        //     text += item + "\t" + item + ":" + answers[key][item] ? this.strInsert(answers[key][item], 20, "\n") : ""
-                        // }
-                        // text += "\n"
-                        // console.log(key, answers[key])
                     }
                     this.stop = true;
                     Swal.fire({
@@ -221,10 +217,7 @@ export default class Scene extends Container {
                     }).then((result) => {
                         this.stop = false;
                     })
-                    // this.$answerView.text = text
-                    // this.$answerView.interactive = true
-                    // this.$answerView.buttonMode = true
-                    // this.$answerView.visible = true
+
                 })
                 .catch((error) => {
                     console.log(error)
@@ -255,9 +248,37 @@ export default class Scene extends Container {
         // 渲染
         this.$idiom = new Idiom(app)
         this.addChild(this.$idiom)
+
+        console.log(this.$idiom.$pieces)
+
+        const dispose = this.app.storage.addStateChangedListener(() => {
+            console.log("this.app.storage", this.app.storage.state)
+            for (const piece of this.$idiom.$pieces.children) {
+                let state = this.app.storage.state[piece.id];
+                if (state !== undefined) {
+                    console.log(piece)
+                    this._load_piece_state(state, piece)
+                }
+            }
+        });
+
+
+
+
         this.addChild(this.$answerView)
 
     }
+
+    _load_piece_state(state, piece) {
+        // storage.setState({[piece.id] : {x:piece.x, y:piece.y, col: piece.col, row: piece.row, currentIndex: piece.currentIndex}})
+        piece.x = state.x
+        piece.y = state.y
+        piece.col = state.col
+        piece.row = state.row
+        // piece.currentIndex = state.currentIndex
+    }
+
+
 
     strInsert(originStr, disNum, insertStr) {
         return originStr.replace(new RegExp("(.{" + disNum + "})", "g"), "$1" + insertStr);

@@ -105,7 +105,6 @@ export default class App {
             item.style.height = `${newHeight}px`
             console.log("item style", item.style.left, item.style.top, item.style.width, item.style.height)
         })
-
     }
 
     getRandomString(length) {
