@@ -21,7 +21,7 @@ import {
      * 3  4  5
      * 6  7  8
      */
-    constructor(texture, currentIndex, targetIndex) {
+    constructor(texture, currentIndex, targetIndex, app) {
       super()
   
       // const rect = Sprite.from(texture);
@@ -33,8 +33,9 @@ import {
       //
       //
       // this.addChild(rect);
+      this.texture = texture
       this.addChild(texture);
-  
+      this.app = app;
   
       utils.EventEmitter.call(this)
   
@@ -45,6 +46,8 @@ import {
   
       //listen on the drag event
       this
+        .on('pointerover', this._onOver)
+        .on('pointerout', this._onOut)
         .on('pointerdown', this._onDragStart)
         .on('pointermove', this._onDragMove)
         .on('pointerup', this._onDragEnd)
@@ -98,6 +101,14 @@ import {
         this.data = null
         this.emit('dragend', this)
       }
+    }
+
+    _onOver() {
+      this.texture.tint = 0x666666;
+    }
+
+    _onOut() {
+      this.texture.tint = 0xFFFFFF;
     }
   
     /**

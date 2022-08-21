@@ -150,7 +150,7 @@ export default class Scene extends Container {
         // 重置
         this.$reset_botton = this.getButton("重置", RESET_POS.x, RESET_POS.y);
         this.$reset_botton.on('pointerdown', () => {
-            this.app.context.dispatchMagixEvent("event1", { trigger: "reset"});
+            this.app.context.dispatchMagixEvent("event1", { trigger: "reset" });
         })
             .on('pointerover', () => {
                 this.$reset_botton.texture = this.$reset_botton.over_texture;
@@ -195,7 +195,7 @@ export default class Scene extends Container {
         const event1Disposer = this.app.context.addMagixEventListener("event1", msg => {
             console.log("event1", msg);
             if (msg.payload.trigger === "win") {
-                this.win(msg.payload.newToken); 
+                this.win(msg.payload.newToken);
             }
             if (msg.payload.trigger === "reset") {
                 this.reset();
@@ -224,7 +224,7 @@ export default class Scene extends Container {
 
     }
 
-    
+
 
     reset() {
         Swal.fire({
@@ -286,7 +286,7 @@ export default class Scene extends Container {
                 delete this.app.storage.state[i];
             }
         }
-        
+
         this.$idiom.reset()
         console.log("new game", this.app.storage.state)
         console.log("开始新一局", this)
@@ -294,7 +294,7 @@ export default class Scene extends Container {
 
     ans() {
         // 优先使用本地缓存，减少接口请求
-        if (this.ansText !== undefined){
+        if (this.ansText !== undefined) {
             Swal.fire({
                 title: '答案解析',
                 html: this.ansText,
@@ -426,5 +426,10 @@ export function _load_piece_state(state, piece) {
     piece.interactive = state.interactive
     piece.alpha = state.alpha
 
+
     // piece.currentIndex = state.currentIndex
+}
+
+export function _save_piece_state(storage, piece) {
+    storage.setState({ [piece.id]: { x: piece.x, y: piece.y, col: piece.col, row: piece.row, interactive: piece.interactive, alpha: piece.alpha} })
 }
