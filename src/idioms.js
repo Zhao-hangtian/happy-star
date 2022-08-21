@@ -14,10 +14,6 @@ export default class Idiom extends Container {
         super()
         this.app = app
         this.renderer = app.renderer
-
-        // 同步token
-        this.token = this.app.token;
-
         //how many step have you moved
         this.pieceId = 0
         this.moveCount = 0
@@ -95,7 +91,7 @@ export default class Idiom extends Container {
         let headers = new Headers();
         headers.append("Content-Type", "text/plain");
 
-        const raw = `{\"token\": \"${this.token}\"}`;
+        const raw = `{\"token\": \"${this.app.storage.state.token}\"}`;
 
         const requestOptions = {
             method: 'POST',
@@ -173,9 +169,9 @@ export default class Idiom extends Container {
             let id = (1<<col | 1<< row)
 
             if (item["char"] !== "_"){
-                colors[id] = parseInt(this.app.randomInts[parseInt(item['seq'])] * 0xFFFFFF);
+                colors[id] = parseInt(this.app.storage.state.randomInts[parseInt(item['seq'])] * 0xFFFFFF);
             }else{
-                colors[id] = parseInt(this.app.randomInts[64] * 0xFFFFFF);
+                colors[id] = parseInt(this.app.storage.state.randomInts[64] * 0xFFFFFF);
             }
             // let id = (1<<col | 1<< row)
             //     if (colors[id] === undefined){

@@ -37,6 +37,7 @@ export default class Scene extends Container {
     constructor(app) {
         super()
         this.app = app
+        this.app.$scene = this
 
         // this._countdown = app.countdown
 
@@ -88,7 +89,7 @@ export default class Scene extends Container {
                 }
             })
 
-            console.log("提交结果...", answer)
+            console.log("提交答案内容", answer)
             const requestOptions = {
                 method: 'POST',
                 headers: {
@@ -98,7 +99,7 @@ export default class Scene extends Container {
                     "answer": answer,
                     "x0": this.$idiom.x0,
                     "y0": this.$idiom.y0,
-                    "token": this.$idiom.token
+                    "token": this.app.storage.state.token
                 }),
                 redirect: 'follow',
                 mode: 'cors'
@@ -208,7 +209,7 @@ export default class Scene extends Container {
                 let state = this.app.storage.state[piece.id];
                 if (state !== undefined) {
                     // console.log("piece changed", piece)
-                    this._load_piece_state(state, piece)
+                    _load_piece_state(state, piece)
                 }
             }
         });
@@ -223,17 +224,7 @@ export default class Scene extends Container {
 
     }
 
-    _load_piece_state(state, piece) {
-        // storage.setState({[piece.id] : {x:piece.x, y:piece.y, col: piece.col, row: piece.row, currentIndex: piece.currentIndex}})
-        piece.x = state.x
-        piece.y = state.y
-        piece.col = state.col
-        piece.row = state.row
-        piece.interactive = state.interactive
-        piece.alpha = state.alpha
-
-        // piece.currentIndex = state.currentIndex
-    }
+    
 
     reset() {
         Swal.fire({
@@ -245,7 +236,7 @@ export default class Scene extends Container {
         this.$idiom.reset()
     }
 
-    win(token) {
+    win(newToken) {
         Swal.fire({
             title: 'Success!',
             html: '恭喜通关!在下真是<b>' + WINNER_WORDS[Math.random() * WINNER_WORDS.length | 0] + '</b>',
@@ -278,8 +269,13 @@ export default class Scene extends Container {
             }
         })
 
-        this.app.storage.state.token = token
-        this.app.token = this.app.storage.state.token
+        // this.app.storage.state.token = newToken
+        // this.app.storage.state.level += 1
+        this.app.storage.setState({
+            token: newToken,
+            level: this.app.storage.state.level + 1
+        })
+        // this.app.token = this.app.storage.state.token
 
         this.$idiom.destroy({ children: true, texture: true, baseTexture: true });
         this.$idiom = new Idiom(this.app)
@@ -290,8 +286,9 @@ export default class Scene extends Container {
                 delete this.app.storage.state[i];
             }
         }
-        console.log(this.app.storage.state)
+        
         this.$idiom.reset()
+        console.log("new game", this.app.storage.state)
         console.log("开始新一局", this)
     }
 
@@ -315,7 +312,7 @@ export default class Scene extends Container {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "token": this.$idiom.token
+                "token": this.app.storage.state.token
             }),
             redirect: 'follow',
             mode: 'cors'
@@ -418,4 +415,16 @@ export default class Scene extends Container {
     //         // }
     //     }, 1000)
     // }
+}
+
+export function _load_piece_state(state, piece) {
+    // storage.setState({[piece.id] : {x:piece.x, y:piece.y, col: piece.col, row: piece.row, currentIndex: piece.currentIndex}})
+    piece.x = state.x
+    piece.y = state.y
+    piece.col = state.col
+    piece.row = state.row
+    piece.interactive = state.interactive
+    piece.alpha = state.alpha
+
+    // piece.currentIndex = state.currentIndex
 }
