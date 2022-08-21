@@ -4,6 +4,8 @@ export const width = 800
 //height of the canvas
 export const height = 1280
 
+export const maxBlockNumRoot = 10
+
 //game name
 export const name='成语解谜'
 

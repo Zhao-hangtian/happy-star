@@ -67,11 +67,10 @@ export default class Idiom extends Container {
    * create pieces
    */
   _createPieces(table, candidates) {
-    let maxBlockNumRoot = 10;
     // console.log(candidates)
     // 计算偏移量，使得游戏整体居中
-    let xMin = maxBlockNumRoot;
-    let yMin = maxBlockNumRoot;
+    let xMin = config.maxBlockNumRoot;
+    let yMin = config.maxBlockNumRoot;
     let xMax = 0;
     let yMax = 0;
     table.forEach((item) => {
@@ -94,15 +93,15 @@ export default class Idiom extends Container {
     this.y0 = -yMin;
     console.log("offset:", this.x0, this.y0);
 
-    let blockSizePadding = config.width / maxBlockNumRoot;
+    let blockSizePadding = config.width / config.maxBlockNumRoot;
     let blockSize = blockSizePadding * 0.9;
     let offset_x = blockSizePadding - blockSize;
 
     for (let i = 0; i < candidates.length; i++) {
       let row = 12;
       this._addPiece(
-        row + Math.floor(i / maxBlockNumRoot),
-        i % maxBlockNumRoot,
+        row + Math.floor(i / config.maxBlockNumRoot),
+        i % config.maxBlockNumRoot,
         0xffffff,
         candidates[i],
         blockSize,
@@ -332,14 +331,4 @@ export default class Idiom extends Container {
     return overlap;
   }
 
-  // createBack() {
-  //   const graphics = new Graphics()
-  //   this.$pieces.children.forEach(piece => {
-  //     graphics.lineStyle(2, 0xFEEB77, 1)
-  //     graphics.beginFill(0x650a5A)
-  //     graphics.drawRect(piece.x, piece.y, piece.width, piece.height)
-  //     graphics.endFill()
-  //     this.back.addChild(graphics)
-  //   })
-  // }
 }

@@ -9,8 +9,8 @@ export default class App {
   constructor(context) {
     const app = new PIXI.Application({
       backgroundAlpha: 0,
-      width: 800,
-      height: 1280,
+      width: config.width,
+      height: config.height,
     });
     this.app = app;
     this.app.context = context;

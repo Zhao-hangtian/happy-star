@@ -29,6 +29,7 @@ const ChineseIdiomsPuzzle = {
 
     const $content = document.createElement("div");
     $content.className = "app-idioms";
+    $content.id = "custom-target";
     $content.style = "position: relative;";
     box.mountContent($content);
 

@@ -163,13 +163,7 @@ export default class Scene extends Container {
                 newToken: newToken,
               });
             } else {
-              Swal.fire({
-                icon: "error",
-                title: "Oh...就差一点点！",
-                text: "让我们再试一试!",
-                showConfirmButton: false,
-                timer: 800,
-              });
+              this._wrong();
             }
             // this._createPieces(data['data']['table'], data['data']['candidates'])
           })
@@ -267,16 +261,42 @@ export default class Scene extends Container {
     Swal.fire({
       icon: "success",
       title: "重置完成",
+      target: "#custom-target",
+      customClass: {
+        container: "position-absolute",
+      },
+      toast: true,
       showConfirmButton: false,
       timer: 800,
     });
     this.$idiom.reset();
   }
 
+  _wrong() {
+    Swal.fire({
+      icon: "error",
+      title: "Oh...就差一点点！",
+      text: "让我们再试一试!",
+      target: "#custom-target",
+      customClass: {
+        container: "position-absolute",
+      },
+      toast: true,
+      showConfirmButton: false,
+      timer: 800,
+    });
+  }
+
   win(newToken) {
     let timerInterval;
     Swal.fire({
+      icon: "success",
       title: "通关!",
+      target: "#custom-target",
+      customClass: {
+        container: "position-absolute",
+      },
+      toast: true,
       html:
         "在下真是<b>" +
         randomChoice(WINNER_WORDS) +
@@ -284,7 +304,7 @@ export default class Scene extends Container {
       timer: 2000,
       timerProgressBar: true,
       didOpen: () => {
-        Swal.showLoading();
+        // Swal.showLoading();
         const b = Swal.getHtmlContainer().querySelector("t");
         timerInterval = setInterval(() => {
           b.textContent = Swal.getTimerLeft();
