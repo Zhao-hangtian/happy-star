@@ -1,12 +1,8 @@
 import {
   Container,
-  filters,
-  Texture,
   Graphics,
   Sprite,
   Text,
-  TextStyle,
-  BaseTexture,
 } from "pixi.js";
 
 import { backendAddress } from "./config";
@@ -18,7 +14,6 @@ const WINNER_WORDS = [
   "百伶百俐",
   "百龙之智",
   "辨日炎凉",
-  "别具慧眼",
   "冰雪聪明",
   "聪慧绝伦",
   "聪明出众",
@@ -49,6 +44,11 @@ const WINNER_WORDS = [
   "至知不谋",
   "卓荦强识",
   "足智多谋",
+  "学富五车",
+  "知识渊博",
+  "才高八斗",
+  "多才多艺",
+  "博古通今",
 ];
 const ANS_WORDS = [
   "我晓得",
@@ -94,12 +94,13 @@ const MODAL_PARTICLE = [
   "焉",
   "耳",
   "尔",
+  "",
 ];
 
-const BUTTON_TOPS = { height: 60, width: 115 };
-const SUMMIT_POS = { x: -300, y: -630 };
-const RESET_POS = { x: -150, y: -630 };
-const ANS_POS = { x: 0, y: -630 };
+const BUTTON_TOPS = { HEIGHT: 60, WIDTH: 115 };
+const SUMMIT_POS = { X: -300, Y: -630 };
+const RESET_POS = { X: -150, Y: -630 };
+const ANS_POS = { X: 0, Y: -630 };
 
 /**
  * scene of the game
@@ -110,22 +111,18 @@ export default class Scene extends Container {
     this.app = app;
     this.app.$scene = this;
 
-    // 提交按键
-    this.$summit_rect = this.getButton("提交", SUMMIT_POS.x, SUMMIT_POS.y);
+    this.$summit_rect = this.getNewButton("提交", SUMMIT_POS.X, SUMMIT_POS.Y);
     this.$summit_rect
       .on("pointerdown", () => {
         console.log(this.$idiom.$pieces.children);
 
-        let answer = [];
-        this.$idiom.$pieces.children.forEach((piece) => {
-          if (piece.children[0].children[0] != null) {
-            answer.push({
-              char: piece.children[0].children[0]._text,
-              x: piece.col,
-              y: piece.row,
-            });
-          }
-        });
+        const answer = this.$idiom.$pieces.children
+          .filter((piece) => piece.children[0].children[0] != null)
+          .map((piece) => ({
+            char: piece.children[0].children[0]._text,
+            x: piece.col,
+            y: piece.row,
+          }));
 
         console.log("提交答案内容", answer);
         const requestOptions = {
@@ -143,11 +140,8 @@ export default class Scene extends Container {
           mode: "cors",
         };
 
-        // console.log(raw)
-
         fetch(`https://${backendAddress}/idioms/CheckIdioms`, requestOptions)
           .then((response) => {
-            console.log(response);
             return response.json();
           })
           .then((data) => {
@@ -158,14 +152,13 @@ export default class Scene extends Container {
                 256,
                 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
               );
-              this.app.context.dispatchMagixEvent("event1", {
+              this.app.context.dispatchMagixEvent("eventOp", {
                 trigger: "win",
                 newToken: newToken,
               });
             } else {
               this._wrong();
             }
-            // this._createPieces(data['data']['table'], data['data']['candidates'])
           })
           .catch((error) => {
             console.log(error);
@@ -182,10 +175,10 @@ export default class Scene extends Container {
     this.addChild(this.$summit_rect);
 
     // 重置
-    this.$reset_botton = this.getButton("重置", RESET_POS.x, RESET_POS.y);
+    this.$reset_botton = this.getNewButton("重置", RESET_POS.X, RESET_POS.Y);
     this.$reset_botton
       .on("pointerdown", () => {
-        this.app.context.dispatchMagixEvent("event1", { trigger: "reset" });
+        this.app.context.dispatchMagixEvent("eventOp", { trigger: "reset" });
       })
       .on("pointerover", () => {
         this.$reset_botton.texture = this.$reset_botton.over_texture;
@@ -196,7 +189,7 @@ export default class Scene extends Container {
     this.addChild(this.$reset_botton);
 
     // 答案
-    this.$answer_botton = this.getButton("答案", ANS_POS.x, ANS_POS.y);
+    this.$answer_botton = this.getNewButton("答案", ANS_POS.X, ANS_POS.Y);
     this.$answer_botton
       .on("pointerdown", () => {
         console.log("获取正确答案");
@@ -224,10 +217,10 @@ export default class Scene extends Container {
     this.$idiom = new Idiom(app);
     this.addChild(this.$idiom);
 
-    const event1Disposer = this.app.context.addMagixEventListener(
-      "event1",
+    const eventOpDisposer = this.app.context.addMagixEventListener(
+      "eventOp",
       (msg) => {
-        console.log("event1", msg);
+        console.log("eventOp", msg);
         if (msg.payload.trigger === "win") {
           this.win(msg.payload.newToken);
         }
@@ -237,20 +230,17 @@ export default class Scene extends Container {
       }
     );
 
-    console.log(this.$idiom.$pieces);
-
     const dispose = this.app.storage.addStateChangedListener(() => {
       for (const piece of this.$idiom.$pieces.children) {
         let state = this.app.storage.state[piece.id];
         if (state !== undefined) {
-          // console.log("piece changed", piece)
           _load_piece_state(state, piece);
         }
       }
     });
 
-    // console.log("this.app.storage", this.app.storage.state)
     this.app.context.emitter.on("destroy", () => {
+      eventOpDisposer();
       dispose();
     });
 
@@ -300,11 +290,13 @@ export default class Scene extends Container {
       html:
         "在下真是<b>" +
         randomChoice(WINNER_WORDS) +
+        randomChoice(MODAL_PARTICLE) +
         "</b><p>(即将进入下一关<t></t>ms)",
+      confirmButtonText:
+        randomChoice(WINNER_CONFIRM_WORDS) + randomChoice(MODAL_PARTICLE),
       timer: 2000,
       timerProgressBar: true,
       didOpen: () => {
-        // Swal.showLoading();
         const b = Swal.getHtmlContainer().querySelector("t");
         timerInterval = setInterval(() => {
           b.textContent = Swal.getTimerLeft();
@@ -314,19 +306,15 @@ export default class Scene extends Container {
         clearInterval(timerInterval);
       },
     }).then((result) => {
-      /* Read more about handling dismissals below */
       if (result.dismiss === Swal.DismissReason.timer) {
         console.log("I was closed by the timer");
       }
     });
 
-    // this.app.storage.state.token = newToken
-    // this.app.storage.state.level += 1
     this.app.storage.setState({
       token: newToken,
       level: this.app.storage.state.level + 1,
     });
-    // this.app.token = this.app.storage.state.token
 
     this.$idiom.destroy({ children: true, texture: true, baseTexture: true });
     this.$idiom = new Idiom(this.app);
@@ -369,8 +357,6 @@ export default class Scene extends Container {
       redirect: "follow",
       mode: "cors",
     };
-
-    // console.log(raw)
 
     fetch(`https://${backendAddress}/idioms/getAnswer`, requestOptions)
       .then((response) => {
@@ -421,15 +407,15 @@ export default class Scene extends Container {
     );
   }
 
-  getButton(text, x, y) {
+  getNewButton(text, x, y) {
     const button_over = new Graphics();
     button_over.lineStyle(8, 0xff0000, 0.5);
     button_over.beginFill(0xffffff, 0.5);
     button_over.drawRoundedRect(
       0,
       0,
-      BUTTON_TOPS.width,
-      BUTTON_TOPS.height,
+      BUTTON_TOPS.WIDTH,
+      BUTTON_TOPS.HEIGHT,
       16
     );
     button_over.endFill();
@@ -440,8 +426,8 @@ export default class Scene extends Container {
     button_normal.drawRoundedRect(
       0,
       0,
-      BUTTON_TOPS.width,
-      BUTTON_TOPS.height,
+      BUTTON_TOPS.WIDTH,
+      BUTTON_TOPS.HEIGHT,
       16
     );
     button_normal.endFill();
