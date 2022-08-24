@@ -1,7 +1,7 @@
 import { Container, Graphics, Rectangle, Sprite, Text } from "pixi.js";
 import Piece from "./piece";
 import * as config from "./config";
-import { _load_piece_state, _save_piece_state } from "./scene";
+import { load_piece_state, save_piece_state } from "./scene";
 import Scene from "./scene";
 
 //gap between the piece
@@ -111,20 +111,23 @@ export default class Idiom extends Container {
       );
     }
 
-    let colors = {};
-    table.forEach((item) => {
-      let row = parseInt(item["pos"]["y"]) + this.y0;
-      let col = parseInt(item["pos"]["x"]) + this.x0;
-      let id = (1 << col) | (1 << row);
+    // let colors = {};
+    // table.forEach((item) => {
+    //   let row = parseInt(item["pos"]["y"]) + this.y0;
+    //   let col = parseInt(item["pos"]["x"]) + this.x0;
+    //   let id = (1 << col) | (1 << row);
+      // colors[id] = parseInt(
+      //   this.app.storage.state.randomInts[parseInt(item["seq"])] * 0xffffff
+      // );
 
-      if (item["char"] !== "_") {
-        colors[id] = parseInt(
-          this.app.storage.state.randomInts[parseInt(item["seq"])] * 0xffffff
-        );
-      } else {
-        colors[id] = parseInt(this.app.storage.state.randomInts[64] * 0xffffff);
-      }
-    });
+    //   if (item["char"] !== "_") {
+    //     colors[id] = parseInt(
+    //       this.app.storage.state.randomInts[parseInt(item["seq"])] * 0xffffff
+    //     );
+    //   } else {
+    //     colors[id] = parseInt(this.app.storage.state.randomInts[128] * 0xffffff);
+    //   }
+    // });
 
     table.forEach((item) => {
       let row = parseInt(item["pos"]["y"]) + this.y0;
@@ -133,7 +136,7 @@ export default class Idiom extends Container {
       this._addPiece(
         row,
         col,
-        colors[id],
+        this.app.storage.state.randomInts[parseInt(item["seq"])] * 0xffffff,
         item["char"],
         blockSize,
         blockSizePadding,
@@ -149,7 +152,7 @@ export default class Idiom extends Container {
       item["piece"].y = item["originalY"];
       item["piece"].col = item["originalCol"];
       item["piece"].row = item["originalRow"];
-      _save_piece_state(this.app.storage, item["piece"]);
+      save_piece_state(this.app.storage, item["piece"]);
     });
   }
 
@@ -212,9 +215,9 @@ export default class Idiom extends Container {
     // 有线上数据则拉取覆盖，否则初始化线上  _save_piece_state(this.app.storage, picked)
     const cacheState = this.app.storage.state[piece.id];
     if (cacheState !== undefined) {
-      _load_piece_state(cacheState, piece);
+      load_piece_state(cacheState, piece);
     } else {
-      _save_piece_state(this.app.storage, piece);
+      save_piece_state(this.app.storage, piece);
     }
 
     this.init_table.push({
@@ -238,11 +241,11 @@ export default class Idiom extends Container {
         this.$select.addChild(picked);
         // picked.fromX = picked.x
         // picked.fromY = picked.y
-        _save_piece_state(this.app.storage, picked);
+        save_piece_state(this.app.storage, picked);
         // this.app.storage.setState({[picked.id] : {x:picked.x, y:picked.y}})
       })
       .on("dragmove", (picked) => {
-        _save_piece_state(this.app.storage, picked);
+        save_piece_state(this.app.storage, picked);
         // console.log(this.app.storage.state[piece.id])
         //check if hover on the other piece
         this._checkHover(picked);
@@ -264,8 +267,8 @@ export default class Idiom extends Container {
           picked.x = picked.origin_x;
           picked.y = picked.origin_y;
         }
-        _save_piece_state(this.app.storage, target);
-        _save_piece_state(this.app.storage, picked);
+        save_piece_state(this.app.storage, target);
+        save_piece_state(this.app.storage, picked);
       });
 
     // const dispose = this.app.storage.addStateChangedListener(refresh);
@@ -293,7 +296,7 @@ export default class Idiom extends Container {
         [picked.id]: { interactive: false, alpha: 0 },
       });
     }
-    _save_piece_state(this.app.storage, picked);
+    save_piece_state(this.app.storage, picked);
 
     // picked.currentIndex = target.currentIndex
 

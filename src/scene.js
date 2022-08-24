@@ -1,9 +1,4 @@
-import {
-  Container,
-  Graphics,
-  Sprite,
-  Text,
-} from "pixi.js";
+import { Container, Graphics, Sprite, Text } from "pixi.js";
 
 import { backendAddress } from "./config";
 import Swal from "sweetalert2";
@@ -97,10 +92,10 @@ const MODAL_PARTICLE = [
   "",
 ];
 
-const BUTTON_TOPS = { HEIGHT: 60, WIDTH: 115 };
-const SUMMIT_POS = { X: -300, Y: -630 };
+const BUTTON_TOPS = { HEIGHT: 60, WIDTH: 150 };
+const SUMMIT_POS = { X: -350, Y: -630 };
 const RESET_POS = { X: -150, Y: -630 };
-const ANS_POS = { X: 0, Y: -630 };
+const ANS_POS = { X: 50, Y: -630 };
 
 /**
  * scene of the game
@@ -111,11 +106,9 @@ export default class Scene extends Container {
     this.app = app;
     this.app.$scene = this;
 
-    this.$summit_rect = this.getNewButton("提交", SUMMIT_POS.X, SUMMIT_POS.Y);
-    this.$summit_rect
-      .on("pointerdown", () => {
-        console.log(this.$idiom.$pieces.children);
-
+    this.$submitButton = this.getNewButton("提交", SUMMIT_POS.X, SUMMIT_POS.Y);
+    this.$submitButton
+      .on("pointertap", () => {
         const answer = this.$idiom.$pieces.children
           .filter((piece) => piece.children[0].children[0] != null)
           .map((piece) => ({
@@ -124,7 +117,6 @@ export default class Scene extends Container {
             y: piece.row,
           }));
 
-        console.log("提交答案内容", answer);
         const requestOptions = {
           method: "POST",
           headers: {
@@ -140,6 +132,13 @@ export default class Scene extends Container {
           mode: "cors",
         };
 
+        if (this.app.storage.state.submitLock === true) {
+          this._submitError("其他玩家正在提交");
+          return;
+        }
+        this.app.storage.setState({
+          submitLock: true,
+        });
         fetch(`https://${backendAddress}/idioms/CheckIdioms`, requestOptions)
           .then((response) => {
             return response.json();
@@ -148,10 +147,8 @@ export default class Scene extends Container {
             console.log(data);
             // 通关
             if (data["code"] === 0 && data["data"] === true) {
-              let newToken = getRandomString(
-                256,
-                "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-              );
+              let newToken = getRandomString();
+              // 周知进入下一关
               this.app.context.dispatchMagixEvent("eventOp", {
                 trigger: "win",
                 newToken: newToken,
@@ -162,44 +159,57 @@ export default class Scene extends Container {
           })
           .catch((error) => {
             console.log(error);
+          })
+          .finally(() => {
+            this.app.storage.setState({
+              submitLock: false,
+            });
           });
       })
       .on("pointerup", () => {})
       .on("pointerupoutside", () => {})
       .on("pointerover", () => {
-        this.$summit_rect.texture = this.$summit_rect.over_texture;
+        this.$submitButton.texture = this.$submitButton.overTexture;
       })
       .on("pointerout", () => {
-        this.$summit_rect.texture = this.$summit_rect.normal_texture;
+        this.$submitButton.texture = this.$submitButton.normalTexture;
       });
-    this.addChild(this.$summit_rect);
+    this.addChild(this.$submitButton);
 
     // 重置
-    this.$reset_botton = this.getNewButton("重置", RESET_POS.X, RESET_POS.Y);
-    this.$reset_botton
-      .on("pointerdown", () => {
+    this.$resetBotton = this.getNewButton("重置", RESET_POS.X, RESET_POS.Y);
+    this.$resetBotton
+      .on("pointertap", () => {
         this.app.context.dispatchMagixEvent("eventOp", { trigger: "reset" });
       })
       .on("pointerover", () => {
-        this.$reset_botton.texture = this.$reset_botton.over_texture;
+        this.$resetBotton.texture = this.$resetBotton.overTexture;
       })
       .on("pointerout", () => {
-        this.$reset_botton.texture = this.$reset_botton.normal_texture;
+        this.$resetBotton.texture = this.$resetBotton.normalTexture;
       });
-    this.addChild(this.$reset_botton);
+    this.addChild(this.$resetBotton);
 
     // 答案
     this.$answer_botton = this.getNewButton("答案", ANS_POS.X, ANS_POS.Y);
     this.$answer_botton
-      .on("pointerdown", () => {
+      .on("pointertap", () => {
         console.log("获取正确答案");
         this.ans();
       })
+      .on("pointerdown", () => {
+        console.log("DOWN!")
+        this.$answer_botton.texture.tint = 0x666666;
+      })
+      .on("pointerup", () => {
+        console.log("UP!")
+        this.$answer_botton.texture.tint = 0x000000;
+      })
       .on("pointerover", () => {
-        this.$answer_botton.texture = this.$answer_botton.over_texture;
+        this.$answer_botton.texture = this.$answer_botton.overTexture;
       })
       .on("pointerout", () => {
-        this.$answer_botton.texture = this.$answer_botton.normal_texture;
+        this.$answer_botton.texture = this.$answer_botton.normalTexture;
       });
     this.addChild(this.$answer_botton);
 
@@ -234,7 +244,7 @@ export default class Scene extends Container {
       for (const piece of this.$idiom.$pieces.children) {
         let state = this.app.storage.state[piece.id];
         if (state !== undefined) {
-          _load_piece_state(state, piece);
+          load_piece_state(state, piece);
         }
       }
     });
@@ -260,6 +270,21 @@ export default class Scene extends Container {
       timer: 800,
     });
     this.$idiom.reset();
+  }
+
+  _submitError(text) {
+    Swal.fire({
+      icon: "error",
+      title: "提交失败",
+      text: text,
+      target: "#custom-target",
+      customClass: {
+        container: "position-absolute",
+      },
+      toast: true,
+      showConfirmButton: false,
+      timer: 800,
+    });
   }
 
   _wrong() {
@@ -289,9 +314,8 @@ export default class Scene extends Container {
       toast: true,
       html:
         "在下真是<b>" +
-        randomChoice(WINNER_WORDS) +
-        randomChoice(MODAL_PARTICLE) +
-        "</b><p>(即将进入下一关<t></t>ms)",
+        randomChoice(WINNER_WORDS)
+        +"</b>"+ randomChoice(MODAL_PARTICLE)+"<p>(即将进入下一关<t></t>ms)",
       confirmButtonText:
         randomChoice(WINNER_CONFIRM_WORDS) + randomChoice(MODAL_PARTICLE),
       timer: 2000,
@@ -408,53 +432,46 @@ export default class Scene extends Container {
   }
 
   getNewButton(text, x, y) {
-    const button_over = new Graphics();
-    button_over.lineStyle(8, 0xff0000, 0.5);
-    button_over.beginFill(0xffffff, 0.5);
-    button_over.drawRoundedRect(
-      0,
-      0,
-      BUTTON_TOPS.WIDTH,
-      BUTTON_TOPS.HEIGHT,
-      16
-    );
-    button_over.endFill();
+    const buttonOver = new Graphics();
+    buttonOver.lineStyle(8, 0xff0000, 0.5);
+    buttonOver.beginFill(0xAABBCC, 0.8);
+    buttonOver.drawRoundedRect(0, 0, BUTTON_TOPS.WIDTH, BUTTON_TOPS.HEIGHT, 16);
+    buttonOver.endFill();
 
-    const button_normal = new Graphics();
-    button_normal.lineStyle(8, 0x2273e6, 0.5);
-    button_normal.beginFill(0xffffff, 0.5);
-    button_normal.drawRoundedRect(
+    const buttonNormal = new Graphics();
+    buttonNormal.lineStyle(8, 0x2273e6, 0.5);
+    buttonNormal.beginFill(0xffffff, 0.5);
+    buttonNormal.drawRoundedRect(
       0,
       0,
       BUTTON_TOPS.WIDTH,
       BUTTON_TOPS.HEIGHT,
       16
     );
-    button_normal.endFill();
-    let normal_texture = this.app.renderer.generateTexture(button_normal);
-    let button_sprite = Sprite.from(normal_texture);
-    const button_text = new Text(text, {
+    buttonNormal.endFill();
+    let normalTexture = this.app.renderer.generateTexture(buttonNormal);
+    let buttonSprite = Sprite.from(normalTexture);
+    const buttonText = new Text(text, {
       fontFamily: "Arial",
       fontSize: 48,
       fill: 0x000000,
       align: "center",
     });
-    button_text.x = button_sprite.x + 0.1 * button_sprite.height;
-    button_text.y = button_sprite.y + 0.1 * button_sprite.height;
-    button_text.height = 0.8 * button_sprite.height;
-    button_text.width = 0.8 * button_sprite.width;
-    button_sprite.x = x;
-    button_sprite.y = y;
-    button_sprite.addChild(button_text);
-    button_sprite.interactive = true;
-    button_sprite.buttonMode = true;
-    button_sprite.over_texture = this.app.renderer.generateTexture(button_over);
-    button_sprite.normal_texture = normal_texture;
-    return button_sprite;
+    buttonText.x = buttonSprite.x + (buttonSprite.width - buttonText.width)*0.5 ;
+    buttonText.y = buttonSprite.y + 0.1 * buttonSprite.height;
+    buttonText.height = 0.8 * buttonSprite.height;
+    buttonSprite.x = x;
+    buttonSprite.y = y;
+    buttonSprite.addChild(buttonText);
+    buttonSprite.interactive = true;
+    buttonSprite.buttonMode = true;
+    buttonSprite.overTexture = this.app.renderer.generateTexture(buttonOver);
+    buttonSprite.normalTexture = normalTexture;
+    return buttonSprite;
   }
 }
 
-export function _load_piece_state(state, piece) {
+export function load_piece_state(state, piece) {
   piece.x = state.x;
   piece.y = state.y;
   piece.col = state.col;
@@ -463,7 +480,7 @@ export function _load_piece_state(state, piece) {
   piece.alpha = state.alpha;
 }
 
-export function _save_piece_state(storage, piece) {
+export function save_piece_state(storage, piece) {
   storage.setState({
     [piece.id]: {
       x: piece.x,

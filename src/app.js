@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import * as config from "./config";
-import { _load_piece_state } from "./scene";
+import { load_piece_state } from "./scene";
 import Scene from "./scene";
 
 import { throttle } from "throttle-debounce"; // 节流（throttle）和去抖（debounce）
@@ -23,14 +23,12 @@ export default class App {
 
     console.log("current state", storage.state);
     storage.ensureState({
-      token: getRandomString(
-        256,
-        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      ),
+      token: getRandomString(),
       randomInts: Array(256)
         .fill(1)
         .map(() => Math.random()),
       level: 1,
+      submitLock: false,  // 提交锁，防止并发提交导致问提分发不一致
     });
 
     this.app.storage = storage;
@@ -40,7 +38,6 @@ export default class App {
       throttle(100, (entries) => {
         for (let entry of entries) {
           const cr = entry.contentRect;
-          // console.log(`Element size: ${cr.width}px & ${cr.height}px`);
           this.autoResize(cr.width, cr.height);
         }
       })
@@ -119,6 +116,8 @@ export default class App {
 }
 
 export function getRandomString(length, chars) {
+  if (length === undefined) length = 256
+  if (chars == undefined) chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
   let result = "";
   for (let i = length; i > 0; --i)
     result += chars[Math.floor(Math.random() * chars.length)];

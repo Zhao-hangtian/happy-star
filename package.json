@@ -1,8 +1,8 @@
 {
-  "name": "app-counter",
-  "version": "0.1.0",
-  "description": "Template for a Netless Community App",
-  "private": true,
+  "name": "成语解谜 - Chines Idiom Puzzle",
+  "version": "1.0.0",
+  "description": "老少咸宜、寓教于乐的成语解谜游戏，可以作为学生们课堂闲暇之余的有益消遣，同时也适合朋友、情侣与家庭聚会，共同参与游戏并感受中华文化的魅力与乐趣。",
+  "private": false,
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "files": [
