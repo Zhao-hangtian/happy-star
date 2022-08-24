@@ -93,9 +93,7 @@
 
 ## 技术栈
 
-- 计算机
-
-- 算法基础
+- 计算机&算法基础
     - 深度优先搜索(DFS)与剪枝
     - 字典树(Trie)
     - 倒排索引(Inverted index)
@@ -125,6 +123,8 @@
 # 许可协议
 
 该参赛作品的源代码以`MIT`开源协议对外开源。
+
+本项目依赖了[netless-io/flat](https://github.com/netless-io/flat)、[PixiJS](https://github.com/pixijs/pixijs)、[React](https://github.com/facebook/react)。
 
 ```
 Copyright (C) 2022 Zhao-hangtian iamzhaohangtian@gmail.com
