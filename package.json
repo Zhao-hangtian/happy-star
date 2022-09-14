@@ -20,13 +20,18 @@
     "@netless/fastboard": "^0.3.3",
     "@netless/window-manager": "^0.4.30",
     "prettier": "^2.7.1",
-    "vite": "^2.9.10",
+    "vite": "^2.9.15",
     "white-web-sdk": "^2.16.24"
   },
   "dependencies": {
     "@inlet/react-pixi": "^6.8.0",
+    "i": "^0.3.7",
+    "npm": "^8.19.1",
+    "or": "^0.2.0",
+    "pixi": "^0.3.1",
     "pixi-sound": "^3.0.5",
     "pixi.js": "^6.5.1",
+    "react": "^17.0.2",
     "sweetalert2": "^11.4.28",
     "throttle-debounce": "^5.0.0"
   }

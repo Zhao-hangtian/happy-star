@@ -29,12 +29,9 @@
   background-repeat: repeat;
 }
 
-#custom-target {
+/* #custom-target {
   position: relative;
-  /* width: 600px;
-  height: 300px;
-  border-style: solid; */
-}
+} */
 
 .position-absolute {
   position: absolute;

@@ -6,13 +6,15 @@ import Scene from "./scene";
 import { throttle } from "throttle-debounce"; // 节流（throttle）和去抖（debounce）
 
 export default class App {
-  constructor(context) {
+  constructor(context, appId) {
     const app = new PIXI.Application({
       backgroundAlpha: 0,
       width: config.width,
       height: config.height,
     });
     this.app = app;
+    this.app.appId = appId;
+    console.log("appId", this.app.appId)
     this.app.context = context;
     this.app.resizeTo = undefined;
     this.viewRect = config.viewRect;
@@ -28,7 +30,7 @@ export default class App {
         .fill(1)
         .map(() => Math.random()),
       level: 1,
-      submitLock: false,  // 提交锁，防止并发提交导致问提分发不一致
+      submitLock: false,  // 提交锁，防止并发提交导致问题分发不一致
     });
 
     this.app.storage = storage;
@@ -67,7 +69,7 @@ export default class App {
   }
 
   autoResize(width, height) {
-    console.log("window size changed: width:", width, "height:", height);
+    // console.log("window size changed: width:", width, "height:", height);
 
     let viewRect = Object.assign(
       {
@@ -104,13 +106,13 @@ export default class App {
       item.style.marginTop = `${y}px`;
       item.style.width = `${newWidth}px`;
       item.style.height = `${newHeight}px`;
-      console.log(
-        "item style",
-        item.style.left,
-        item.style.top,
-        item.style.width,
-        item.style.height
-      );
+      // console.log(
+      //   "item style",
+      //   item.style.left,
+      //   item.style.top,
+      //   item.style.width,
+      //   item.style.height
+      // );
     });
   }
 }

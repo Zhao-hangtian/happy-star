@@ -7,18 +7,15 @@ export default defineConfig(({ mode }) => ({
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   build: {
-    // lib: {
-    //   entry: path.resolve(__dirname, "src/index.js"),
-    //   formats: ["cjs", "es"],
-    //   fileName: "index",
-    // },
+    lib: {
+      entry: path.resolve(__dirname, "src/index.js"),
+      formats: ["cjs", "es"],
+      fileName: "index",
+    },
     sourcemap: mode === "production",
     outDir: "dist",
     rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html'),
-      },
-      // external: ["@netless/fastboard", "@netless/window-manager", "white-web-sdk"],
+      external: ["@netless/fastboard", "@netless/window-manager", "white-web-sdk"],
       output: {
         manualChunks: undefined,
         inlineDynamicImports: true,

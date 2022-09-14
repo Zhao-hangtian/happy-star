@@ -152,6 +152,7 @@ export default class Idiom extends Container {
       item["piece"].y = item["originalY"];
       item["piece"].col = item["originalCol"];
       item["piece"].row = item["originalRow"];
+      item["piece"].alpha = 1
       save_piece_state(this.app.storage, item["piece"]);
     });
   }
@@ -217,7 +218,7 @@ export default class Idiom extends Container {
     if (cacheState !== undefined) {
       load_piece_state(cacheState, piece);
     } else {
-      save_piece_state(this.app.storage, piece);
+      if (this.app.storage) save_piece_state(this.app.storage, piece);
     }
 
     this.init_table.push({

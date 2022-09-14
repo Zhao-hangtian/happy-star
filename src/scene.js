@@ -105,6 +105,8 @@ export default class Scene extends Container {
     super();
     this.app = app;
     this.app.$scene = this;
+    this.customTarget = "#" + this.app.appId
+    console.log("customTarget", this.customTarget)
 
     this.$submitButton = this.getNewButton("提交", SUMMIT_POS.X, SUMMIT_POS.Y);
     this.$submitButton
@@ -261,7 +263,7 @@ export default class Scene extends Container {
     Swal.fire({
       icon: "success",
       title: "重置完成",
-      target: "#custom-target",
+      target: this.customTarget,
       customClass: {
         container: "position-absolute",
       },
@@ -277,7 +279,7 @@ export default class Scene extends Container {
       icon: "error",
       title: "提交失败",
       text: text,
-      target: "#custom-target",
+      target: this.customTarget,
       customClass: {
         container: "position-absolute",
       },
@@ -292,7 +294,7 @@ export default class Scene extends Container {
       icon: "error",
       title: "Oh...就差一点点！",
       text: "让我们再试一试!",
-      target: "#custom-target",
+      target: this.customTarget,
       customClass: {
         container: "position-absolute",
       },
@@ -307,7 +309,7 @@ export default class Scene extends Container {
     Swal.fire({
       icon: "success",
       title: "通关!",
-      target: "#custom-target",
+      target: this.customTarget,
       customClass: {
         container: "position-absolute",
       },
@@ -331,28 +333,28 @@ export default class Scene extends Container {
       },
     }).then((result) => {
       if (result.dismiss === Swal.DismissReason.timer) {
-        console.log("I was closed by the timer");
+        // console.log("closed by the timer");
       }
-    });
-
-    this.app.storage.setState({
-      token: newToken,
-      level: this.app.storage.state.level + 1,
-    });
-
-    this.$idiom.destroy({ children: true, texture: true, baseTexture: true });
-    this.$idiom = new Idiom(this.app);
-    this.addChild(this.$idiom);
-    // 清空共享缓存
-    for (let i = 0; i < 256; i++) {
-      if (this.app.storage.state[i] !== undefined) {
-        delete this.app.storage.state[i];
+      this.app.storage.setState({
+        token: newToken,
+        level: this.app.storage.state.level + 1,
+      });
+  
+      this.$idiom.destroy({ children: true, texture: true, baseTexture: true });
+      this.$idiom = new Idiom(this.app);
+      this.addChild(this.$idiom);
+      // 清空共享缓存
+      for (let i = 0; i < 256; i++) {
+        if (this.app.storage.state[i] !== undefined) {
+          delete this.app.storage.state[i];
+        }
       }
-    }
-
-    this.$idiom.reset();
-    console.log("new game", this.app.storage.state);
-    console.log("开始新一局", this);
+  
+      this.$idiom.reset();
+      console.log("new game", this.app.storage.state);
+      console.log("开始新一局", this);
+      this.ansText = undefined;
+    });
   }
 
   ans() {
@@ -406,7 +408,7 @@ export default class Scene extends Container {
             answers[key]["Example"] +
             "</p>";
         }
-        console.log("aa", randomChoice(ANS_WORDS));
+        // console.log("aa", randomChoice(ANS_WORDS));
         Swal.fire({
           title: "答案解析",
           html: text,

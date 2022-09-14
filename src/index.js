@@ -29,11 +29,12 @@ const ChineseIdiomsPuzzle = {
 
     const $content = document.createElement("div");
     $content.className = "app-idioms";
-    $content.id = "custom-target";
+    let idSuffix = Math.random().toString(36).slice(-6);
+    $content.id = "custom-target-" + idSuffix;
     $content.style = "position: relative;";
     box.mountContent($content);
 
-    const app = new App(context);
+    const app = new App(context, $content.id);
     $content.appendChild(app.app.view).className = "app-idioms-scene";
   },
 };
